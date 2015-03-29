@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+ 
+ 	<bean id="userDao" class="com.vars.dao.UserDaoImpl">
+    	<property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="userFacade" class="com.vars.facade.UserFacadeImpl" p:userDao-ref="userDao"/>
+	
+	<bean id="userController" class="com.vars.controller.UserController">
+		<property name="userFacade" ref="userFacade" />
+	</bean>
+	
+	<bean id="projectDao" class="com.vars.dao.ProjectDaoImpl">
+    	<property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="projectFacade" class="com.vars.facade.ProjectFacadeImpl" p:projectDao-ref="projectDao"/>
+	
+	<bean id="projectController" class="com.vars.controller.ProjectController">
+		<property name="bidFacade" ref="bidFacade" />
+		<property name="projectFacade" ref="projectFacade" />
+		<property name="userFacade" ref="userFacade" />
+	</bean>
+	
+	<bean id="bidDao" class="com.vars.dao.BidDaoImpl">
+    	<property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean id="bidFacade" class="com.vars.facade.BidFacadeImpl" p:bidDao-ref="bidDao"/>
+	
+	<bean id="bidController" class="com.vars.controller.BidController">
+		<property name="bidFacade" ref="bidFacade" />
+		<property name="projectFacade" ref="projectFacade" />
+		<property name="userFacade" ref="userFacade" />
+	</bean>
+	
+	<bean id="authenticationController" class="com.vars.controller.AuthenticationController">
+	 	<property name="userFacade" ref="userFacade" />
+	</bean>
+	
+	<tx:advice id="userTxnAdvice" transaction-manager="txnManager">
+		<tx:attributes>
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="create*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:advisor pointcut="execution(* *..UserFacade.*(..))"
+			advice-ref="userTxnAdvice" />			
+	</aop:config>
+	
+</beans>
